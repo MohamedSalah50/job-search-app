@@ -11,7 +11,7 @@ import { UpdatePasswordDto } from './dto/updatePassword.dto';
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
-  @auth([RoleEnum.user])
+  @auth([RoleEnum.user , RoleEnum.admin])
   @Get("/profile")
   profile(@Req() req: IAuthRequest): { message: string } {
     return { message: "done" }

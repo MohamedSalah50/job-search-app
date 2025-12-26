@@ -1,3 +1,6 @@
 export * from "./user.interface"
 export * from "./otp.interface"
 export * from "./token.interface"
+export * from "./company.interface"
+export * from "./job.interface"
+export * from "./application.interface"

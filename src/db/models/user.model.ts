@@ -3,6 +3,7 @@ import { HydratedDocument, Types } from "mongoose";
 import { genderEnum, IUser, ProviderEnum, RoleEnum } from "src/common";
 import { decryptEncryption, generateEncryption, generateHash } from "src/utils";
 import { OtpDocument } from "./otp.model";
+import { Media } from "./company.model";
 
 
 export type UserDocument = HydratedDocument<User> & {
@@ -55,8 +56,10 @@ export class User implements IUser {
     updatedBy: Types.ObjectId
     @Prop({ type: Date })
     changeCredentialTime: Date
-    // profilePic: { secure_url, public_id }
-    // coverPic: { secure_url, public_id }
+    @Prop({ type: Media, default: null })
+    profilePic: Media
+    @Prop({ type: Media, default: null })
+    coverPic: Media
     @Virtual()
     otp: OtpDocument[]
 

@@ -1,6 +1,7 @@
 import { Types } from "mongoose"
 import { genderEnum, ProviderEnum, RoleEnum } from "../enums"
 import { OtpDocument } from "src/db"
+import { IMedia } from "./company.interface"
 
 
 export interface IUser {
@@ -24,8 +25,8 @@ export interface IUser {
     updatedBy?: Types.ObjectId
 
     changeCredentialTime?: Date
-    // profilePic: { secure_url, public_id }
-    // coverPic: { secure_url, public_id }
+    profilePic: IMedia
+    coverPic: IMedia
     otp?: OtpDocument[]
 
     restoredAt?: Date;

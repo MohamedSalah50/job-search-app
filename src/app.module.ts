@@ -7,6 +7,8 @@ import { resolve } from 'node:path';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CompanyModule } from './modules/company/company.module';
+import { JobModule } from './modules/job/job.module';
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     ScheduleModule.forRoot(),
     AuthModule,
-    UserModule
+    UserModule,
+    CompanyModule,
+    JobModule
   ],
   controllers: [AppController],
   providers: [AppService],
