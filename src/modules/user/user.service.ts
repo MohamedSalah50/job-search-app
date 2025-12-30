@@ -1,8 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { TokenRepository, UserDocument, UserRepository } from 'src/db';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { IAuthRequest, RoleEnum } from 'src/common';
-import { compareHash, decryptEncryption, generateEncryption, generateHash } from 'src/utils';
+import { CloudinaryService, IAuthRequest, RoleEnum } from 'src/common';
+import { compareHash, generateEncryption, generateHash } from 'src/utils';
 import { isValidObjectId, Types } from 'mongoose';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
 
@@ -10,11 +14,14 @@ import { UpdatePasswordDto } from './dto/updatePassword.dto';
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly tokenRepository: TokenRepository
-  ) { }
+    private readonly tokenRepository: TokenRepository,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
-  async updateBasicProfile(dto: UpdateUserDto, req: IAuthRequest): Promise<{ message: string }> {
-
+  async updateBasicProfile(
+    dto: UpdateUserDto,
+    req: IAuthRequest,
+  ): Promise<{ message: string }> {
     const { firstName, lastName, gender, DOB, mobileNumber } = dto;
 
     const updateData: any = {};
@@ -25,7 +32,7 @@ export class UserService {
     if (DOB) updateData.DOB = DOB;
     if (mobileNumber) {
       updateData.mobileNumber = await generateEncryption({
-        plainText: mobileNumber
+        plainText: mobileNumber,
       });
     }
 
@@ -42,8 +49,9 @@ export class UserService {
   }
 
   async getLoginUserAccountData(req: IAuthRequest) {
-
-    const user = await this.userRepository.findOne({ filter: { _id: req.user._id, freezedAt: { $exists: false } } }) as UserDocument;
+    const user = (await this.userRepository.findOne({
+      filter: { _id: req.user._id, freezedAt: { $exists: false } },
+    })) as UserDocument;
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -61,16 +69,15 @@ export class UserService {
       // coverPic: user.coverPic,
       role: user.role,
     };
-
   }
 
-
   async getAnotherUserProfile(req: IAuthRequest, userId: Types.ObjectId) {
+    if (!isValidObjectId(userId))
+      throw new NotFoundException('invalid user id');
 
-
-    if (!isValidObjectId(userId)) throw new NotFoundException('invalid user id');
-
-    const user = await this.userRepository.findOne({ filter: { _id: userId, freezedAt: { $exists: false } } }) as UserDocument;
+    const user = (await this.userRepository.findOne({
+      filter: { _id: userId, freezedAt: { $exists: false } },
+    })) as UserDocument;
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -89,38 +96,47 @@ export class UserService {
       mobileNumber: user.actualMobileNumber,
       // profilePic: user.profilePic,
       // coverPic: user.coverPic,
-    }
+    };
   }
 
-
-  async updatePassword(req: IAuthRequest, dto: UpdatePasswordDto): Promise<{ message: string }> {
+  async updatePassword(
+    req: IAuthRequest,
+    dto: UpdatePasswordDto,
+  ): Promise<{ message: string }> {
     const { oldPassword, newPassword } = dto;
 
-    if (oldPassword === newPassword) throw new BadRequestException('old password and new password should be different')
+    if (oldPassword === newPassword)
+      throw new BadRequestException(
+        'old password and new password should be different',
+      );
 
-    const user = await this.userRepository.findOne({ filter: { _id: req.user._id } });
+    const user = await this.userRepository.findOne({
+      filter: { _id: req.user._id },
+    });
 
     if (!user) throw new NotFoundException('user not found');
 
-    if (!await compareHash(oldPassword, user.password)) {
+    if (!(await compareHash(oldPassword, user.password))) {
       throw new BadRequestException('invalid old password');
     }
 
     await this.userRepository.updateOne({
       filter: { _id: req.user._id },
-      update: { password: await generateHash(newPassword), changeCredentialTime: new Date() }
-    })
+      update: {
+        password: await generateHash(newPassword),
+        changeCredentialTime: new Date(),
+      },
+    });
 
-    return { message: 'password updated successfully , please login again' }
-
+    return { message: 'password updated successfully , please login again' };
   }
 
-  async freeze(req: IAuthRequest, userId?: Types.ObjectId): Promise<{ message: string }> {
-
+  async freeze(
+    req: IAuthRequest,
+    userId?: Types.ObjectId,
+  ): Promise<{ message: string }> {
     const targetId =
-      req.user.role === RoleEnum.admin
-        ? (userId || req.user._id)
-        : req.user._id;
+      req.user.role === RoleEnum.admin ? userId || req.user._id : req.user._id;
 
     // const normalizedId = targetId.toString();
 
@@ -140,4 +156,61 @@ export class UserService {
     return { message: 'user archived successfully' };
   }
 
+  async updateProfilePic(
+    userId: Types.ObjectId,
+    uploadResult: { secure_url: string; public_id: string },
+  ) {
+    // Get user
+    const user = await this.userRepository.findOne({
+      filter: { _id: userId },
+    });
+
+    if (!user) throw new NotFoundException('user not found');
+
+    // Delete old profile pic if exists
+    if (user.profilePic?.public_id) {
+      await this.cloudinaryService.destroyFile(user.profilePic.public_id);
+    }
+
+    // Update with new pic
+    await this.userRepository.updateOne({
+      filter: { _id: userId },
+      update: {
+        profilePic: {
+          secure_url: uploadResult.secure_url,
+          public_id: uploadResult.public_id,
+        },
+      },
+    });
+
+    return {
+      message: 'Profile picture uploaded successfully',
+      profilePic: uploadResult,
+    };
+  }
+
+  async deleteProfilePic(userId: Types.ObjectId) {
+    const user = await this.userRepository.findOne({
+      filter: { _id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.profilePic?.public_id) {
+      throw new BadRequestException('No profile picture to delete');
+    }
+
+    // Delete from Cloudinary
+    await this.cloudinaryService.destroyFile(user.profilePic.public_id);
+
+    // Remove from DB
+    await this.userRepository.updateOne({
+      filter: { _id: userId },
+      update: { profilePic: null },
+    });
+
+    return { message: 'Profile picture deleted successfully' };
+  }
 }

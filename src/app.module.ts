@@ -6,9 +6,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { resolve } from 'node:path';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
-import { ScheduleModule } from '@nestjs/schedule';
 import { CompanyModule } from './modules/company/company.module';
 import { JobModule } from './modules/job/job.module';
+import { CommonModule } from './common';
 
 @Module({
   imports: [
@@ -22,13 +22,13 @@ import { JobModule } from './modules/job/job.module';
         return connection;
       },
     }),
-    ScheduleModule.forRoot(),
     AuthModule,
     UserModule,
     CompanyModule,
-    JobModule
+    JobModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

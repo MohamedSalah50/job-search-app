@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, ValidationPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  ValidationPipe,
+  Query,
+} from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -8,31 +19,55 @@ import { type JobDocument } from 'src/db';
 import { Types } from 'mongoose';
 import { GetCompanyJobsDto } from './dto/get-jobs.dto';
 import { JobApplicatonDto } from './dto/JobApplicaton.dto';
-
+import { PaginationDto } from './dto/pagination-job.dto';
+import { HandleApplicationStatusDto } from './dto/handleApplicationStatusDto';
 
 @Controller('job')
 export class JobController {
-  constructor(private readonly jobService: JobService) { }
+  constructor(private readonly jobService: JobService) {}
 
   @auth([RoleEnum.admin, RoleEnum.user])
-  @Post("add-job")
-  async addJob(@Req() req: IAuthRequest, @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, stopAtFirstError: true })) dto: CreateJobDto): Promise<JobDocument> {
+  @Post('add-job')
+  async addJob(
+    @Req() req: IAuthRequest,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true,
+      }),
+    )
+    dto: CreateJobDto,
+  ): Promise<JobDocument> {
     const job = await this.jobService.addJob(dto, req);
-    return job
+    return job;
   }
 
   @auth([RoleEnum.admin, RoleEnum.user])
-  @Patch("/:jobId")
-  async updateJob(@Param("jobId") jobId: Types.ObjectId, @Req() req: IAuthRequest, @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, stopAtFirstError: true })) dto: UpdateJobDto) {
+  @Patch('/:jobId')
+  async updateJob(
+    @Param('jobId') jobId: Types.ObjectId,
+    @Req() req: IAuthRequest,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true,
+      }),
+    )
+    dto: UpdateJobDto,
+  ) {
     return await this.jobService.updateJob(jobId, req, dto);
   }
 
   @auth([RoleEnum.admin, RoleEnum.user])
-  @Delete("/:jobId")
-  async DeleteJob(@Param("jobId") jobId: Types.ObjectId, @Req() req: IAuthRequest) {
+  @Delete('/:jobId')
+  async DeleteJob(
+    @Param('jobId') jobId: Types.ObjectId,
+    @Req() req: IAuthRequest,
+  ) {
     return await this.jobService.deleteJob(jobId, req);
   }
-
 
   @auth([RoleEnum.admin, RoleEnum.user])
   @Get('companies/:companyId/jobs/:jobId')
@@ -48,34 +83,70 @@ export class JobController {
   async getCompaniesJobs(
     @Param('companyId') companyId: Types.ObjectId,
     @Query(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: GetCompanyJobsDto
+    dto: GetCompanyJobsDto,
   ) {
     return this.jobService.getAllCompanyJobs(companyId, dto);
   }
 
-
   @Get('jobs')
   async getJobs(
     @Query(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: GetCompanyJobsDto
+    dto: GetCompanyJobsDto,
   ) {
     return this.jobService.getAllJobs(dto);
   }
 
+  @auth([RoleEnum.admin, RoleEnum.user])
+  @Get(':jobId/applications')
+  async getAllApplicationOnJob(
+    @Param('jobId') jobId: Types.ObjectId,
+    @Req() req: IAuthRequest,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true,
+      }),
+    )
+    dto: PaginationDto,
+  ) {
+    return this.jobService.getAllApplicationOnJob(jobId, req, dto);
+  }
 
   @auth([RoleEnum.user])
-  @Post("apply-jobApplication")
-  async applyJobApplication(@Req() req: IAuthRequest,
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, stopAtFirstError: true }))
-    dto: JobApplicatonDto
+  @Post('apply-jobApplication')
+  async applyJobApplication(
+    @Req() req: IAuthRequest,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true,
+      }),
+    )
+    dto: JobApplicatonDto,
   ) {
     return this.jobService.applyJobApplication(req, dto);
   }
 
-  @Get(":jobId/applications")
-  async getAllApplicationOnJob(@Param("jobId") jobId: Types.ObjectId) {
-    return this.jobService.getAllApplicationOnJob(jobId);
+  @auth([RoleEnum.admin, RoleEnum.user])
+  @Patch('applications/:applicationId/status')
+  async handleApplicationStatus(
+    @Param('applicationId') applicationId: string,
+    @Req() req: IAuthRequest,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true,
+      }),
+    )
+    dto: HandleApplicationStatusDto,
+  ) {
+    return await this.jobService.handleApplicationStatus(
+      applicationId,
+      req,
+      dto,
+    );
   }
-
-
-} 
+}

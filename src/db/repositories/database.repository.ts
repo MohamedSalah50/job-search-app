@@ -23,7 +23,7 @@ export abstract class DatabaseRepository<
   TRawDocument,
   TDocument = HydratedDocument<TRawDocument>,
 > {
-  constructor(protected model: Model<TDocument>) { }
+  constructor(protected model: Model<TDocument>) {}
 
   async create({
     data,
@@ -69,8 +69,6 @@ export abstract class DatabaseRepository<
     // return await query.exec();
   }
 
-
-
   async find({
     filter,
     select,
@@ -80,7 +78,7 @@ export abstract class DatabaseRepository<
     select?: ProjectionType<TDocument> | undefined;
     options?: QueryOptions<TDocument> | undefined;
   }): Promise<Lean<TDocument>[] | HydratedDocument<TDocument>[] | []> {
-    const docs = this.model.find(filter || {}).select(select || "");
+    const docs = this.model.find(filter || {}).select(select || '');
 
     if (options?.lean) {
       docs.lean(options.lean);
@@ -97,38 +95,40 @@ export abstract class DatabaseRepository<
     filter,
     options = {},
     select,
-    page = "all",
+    page = 'all',
     size,
   }: {
     filter?: RootFilterQuery<TDocument>;
     select?: ProjectionType<TDocument> | undefined;
     options?: QueryOptions<TDocument> | undefined;
-    page?: number | "all";
+    page?: number | 'all';
     size?: number;
   }): Promise<{
-    doc_count?: number, pages?: number
-    , current_page?: number | undefined,
-    limit?: number, result: TDocument[] | Lean<TDocument>[]
+    doc_count?: number;
+    pages?: number;
+    current_page?: number | undefined;
+    limit?: number;
+    result: TDocument[] | Lean<TDocument>[];
   }> {
+    let doc_count: number | undefined = undefined;
+    let pages: number = 1;
 
-    let doc_count: number | undefined = undefined
-    let pages: number = 1
-
-    if (page != "all") {
+    if (page != 'all') {
       page = Math.floor(page < 1 ? 1 : page);
       options.limit = Math.floor(size || Number(process.env.PAGE_SIZE) || 2);
       options.skip = (page - 1) * options.limit;
-      doc_count = await this.model.countDocuments(filter)
-      pages = Math.ceil(doc_count / options.limit)
+      doc_count = await this.model.countDocuments(filter);
+      pages = Math.ceil(doc_count / options.limit);
     }
-
 
     const result = await this.find({ filter: filter || {}, select, options });
 
     return {
-      doc_count, pages: page == "all" ? undefined : pages
-      , current_page: page == "all" ? undefined : page,
-      limit: options.limit, result
+      doc_count,
+      pages: page == 'all' ? undefined : pages,
+      current_page: page == 'all' ? undefined : page,
+      limit: options.limit,
+      result,
     };
   }
 
@@ -153,18 +153,17 @@ export abstract class DatabaseRepository<
     );
   }
 
-
   async findOneAndUpdate({
     filter,
     update,
     options = { new: true },
   }: {
-    filter?: RootFilterQuery<TDocument>,
-    update: UpdateQuery<TDocument>,
+    filter?: RootFilterQuery<TDocument>;
+    update: UpdateQuery<TDocument>;
     options?: QueryOptions<TDocument> | null;
   }): Promise<TDocument | Lean<TDocument> | null> {
     if (Array.isArray(update)) {
-      update.push({ $set: { __v: { $add: ["$__v", 1] } } });
+      update.push({ $set: { __v: { $add: ['$__v', 1] } } });
       return await this.model.findOneAndUpdate(filter || {}, update, options);
     }
     return await this.model.findOneAndUpdate(
@@ -175,18 +174,15 @@ export abstract class DatabaseRepository<
           __v: 1,
         },
       },
-      options
+      options,
     );
   }
 
-
   async findOneAndDelete({
-    filter = {}
+    filter = {},
   }: {
-    filter?: RootFilterQuery<TDocument>,
-
+    filter?: RootFilterQuery<TDocument>;
   }): Promise<TDocument | Lean<TDocument> | null> {
-
     return await this.model.findOneAndDelete(filter || {});
   }
 
