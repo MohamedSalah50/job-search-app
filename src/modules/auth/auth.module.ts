@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { OtpModel, OtpRepository, TokenModel, TokenRepository, UserModel, UserRepository } from 'src/db';
-import { TokenService } from 'src/utils/security/token.security';
-import { JwtService } from '@nestjs/jwt';
+import { OtpModel, OtpRepository } from 'src/db';
 import { OtpCleanupService } from 'src/utils/cronjob/otp.cronjob';
+import { SharedAutnenticationModule } from 'src/common/modules/autnentication.module';
 
 @Module({
-  imports: [UserModel, OtpModel, TokenModel],
+  imports: [OtpModel],
   controllers: [AuthController],
-  providers: [AuthService, UserRepository, OtpRepository, TokenService, JwtService, TokenRepository, OtpCleanupService],
+  providers: [AuthService, OtpRepository, OtpCleanupService],
 })
-export class AuthModule { }
+export class AuthModule {}

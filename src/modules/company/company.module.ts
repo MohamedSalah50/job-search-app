@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CompanyController } from './company.controller';
-import { CompanyModel, CompanyRepository, TokenModel, TokenRepository, UserModel, UserRepository } from 'src/db';
-import { TokenService } from 'src/utils/security/token.security';
-import { JwtService } from '@nestjs/jwt';
+import { CompanyModel, CompanyRepository } from 'src/db';
 
 @Module({
-  imports: [CompanyModel, UserModel, TokenModel],
+  imports: [CompanyModel],
   controllers: [CompanyController],
-  providers: [CompanyService, CompanyRepository, UserRepository, TokenRepository , TokenService , JwtService],
+  providers: [CompanyService, CompanyRepository],
 })
-export class CompanyModule { }
+export class CompanyModule {}

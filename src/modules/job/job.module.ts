@@ -1,13 +1,23 @@
 import { Module } from '@nestjs/common';
 import { JobService } from './job.service';
 import { JobController } from './job.controller';
-import { ApplicationModel, ApplicationRepository, CompanyModel, CompanyRepository, JobModel, JobRepository, TokenModel, TokenRepository, UserModel, UserRepository } from 'src/db';
-import { TokenService } from 'src/utils/security/token.security';
-import { JwtService } from '@nestjs/jwt';
+import {
+  ApplicationModel,
+  ApplicationRepository,
+  CompanyModel,
+  CompanyRepository,
+  JobModel,
+  JobRepository,
+} from 'src/db';
 
 @Module({
-  imports: [JobModel, UserModel, CompanyModel, TokenModel, ApplicationModel],
+  imports: [JobModel, CompanyModel, ApplicationModel],
   controllers: [JobController],
-  providers: [JobService, UserRepository, CompanyRepository, JobRepository, TokenService, TokenRepository, JwtService, ApplicationRepository],
+  providers: [
+    JobService,
+    CompanyRepository,
+    JobRepository,
+    ApplicationRepository,
+  ],
 })
-export class JobModule { }
+export class JobModule {}

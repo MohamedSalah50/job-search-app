@@ -9,6 +9,7 @@ import { UserModule } from './modules/user/user.module';
 import { CompanyModule } from './modules/company/company.module';
 import { JobModule } from './modules/job/job.module';
 import { CommonModule } from './common';
+import { SharedAutnenticationModule } from './common/modules/autnentication.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CommonModule } from './common';
         return connection;
       },
     }),
+    SharedAutnenticationModule,
     AuthModule,
     UserModule,
     CompanyModule,
