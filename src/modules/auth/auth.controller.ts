@@ -17,7 +17,9 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { auth } from 'src/common/decorators/auth.decorator';
-import { type IAuthRequest, RoleEnum, tokenEnum } from 'src/common';
+import { type IAuthRequest, IResponse, RoleEnum, tokenEnum } from 'src/common';
+import { successResponse } from 'src/utils';
+import { LoginResponse } from './entities/auth.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -33,8 +35,12 @@ export class AuthController {
       }),
     )
     dto: signupDto,
-  ) {
-    return await this.authService.signup(dto);
+  ): Promise<IResponse> {
+    await this.authService.signup(dto);
+    return successResponse({
+      message: 'user created successfully',
+      status: 201,
+    });
   }
 
   @Post('/resendConfirmEmailOtp')
@@ -47,9 +53,9 @@ export class AuthController {
       }),
     )
     dto: resendConfirmEmailDto,
-  ) {
+  ): Promise<IResponse> {
     await this.authService.resendConfirmEmailOtp(dto);
-    return 'email resent successfully';
+    return successResponse({ message: 'email resent successfully' });
   }
 
   @Patch('/confirmEmail')
@@ -62,8 +68,9 @@ export class AuthController {
       }),
     )
     dto: ConfirmEmailDto,
-  ) {
-    return await this.authService.confirmEmail(dto);
+  ): Promise<IResponse> {
+    await this.authService.confirmEmail(dto);
+    return successResponse({ message: 'email confirmed successfully' });
   }
 
   @Post('/login')
@@ -76,9 +83,9 @@ export class AuthController {
       }),
     )
     dto: LoginDto,
-  ) {
+  ): Promise<IResponse<LoginResponse>> {
     const credentials = await this.authService.login(dto);
-    return credentials;
+    return successResponse<LoginResponse>({ data: { credentials } });
   }
 
   @Post('/sendForgotPassword')
@@ -91,9 +98,9 @@ export class AuthController {
       }),
     )
     dto: ForgotPasswordDto,
-  ) {
+  ): Promise<IResponse> {
     await this.authService.sendForgotPassword(dto);
-    return 'email sent successfully';
+    return successResponse({ message: 'email resent successfully' });
   }
 
   @Post('/resetForgotPassword')
@@ -106,15 +113,17 @@ export class AuthController {
       }),
     )
     dto: ResetPasswordDto,
-  ) {
+  ): Promise<IResponse> {
     await this.authService.resetForgotPassword(dto);
-    return 'password reset successfully , please login again';
+    return successResponse({ message: 'password reseted successfully' });
   }
 
   @Post('/refresh-token')
   @auth([RoleEnum.user, RoleEnum.admin], tokenEnum.refresh)
-  async refreshToken(@Req() req: IAuthRequest) {
+  async refreshToken(
+    @Req() req: IAuthRequest,
+  ): Promise<IResponse<LoginResponse>> {
     const credentials = await this.authService.refreshToken(req);
-    return credentials;
+    return successResponse<LoginResponse>({ data: { credentials } });
   }
 }

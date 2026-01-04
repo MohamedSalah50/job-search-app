@@ -1,11 +1,9 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
-  Delete,
   Req,
   ValidationPipe,
   UploadedFile,
@@ -17,11 +15,10 @@ import {
   CloudinaryService,
   RoleEnum,
   UploadFile,
-  User,
   type IAuthRequest,
 } from 'src/common';
+
 import { auth } from 'src/common/decorators/auth.decorator';
-import type { UserDocument } from 'src/db';
 import { Types } from 'mongoose';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
 
