@@ -1,0 +1,52 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ActionResponseType {
+  message: String!
+  success: Boolean!
+}
+
+type AdminDashboardType {
+  companies: [CompanyResponseType!]!
+  totalCompanies: Float!
+  totalUsers: Float!
+  users: [UserResponseType!]!
+}
+
+type CompanyResponseType {
+  _id: ID!
+  approvedByAdmin: Boolean!
+  bannedAt: DateTime
+  companyEmail: String!
+  companyName: String!
+  deletedAt: DateTime
+  industry: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  """Ban a specific user"""
+  banUser(userId: ID!): ActionResponseType!
+}
+
+type Query {
+  """Get all users and companies for admin dashboard"""
+  adminDashboard: AdminDashboardType!
+  hello: String!
+}
+
+type UserResponseType {
+  _id: ID!
+  bannedAt: DateTime
+  deletedAt: DateTime
+  email: String!
+  firstName: String!
+  isConfirmed: Boolean!
+  lastName: String!
+  role: String!
+}

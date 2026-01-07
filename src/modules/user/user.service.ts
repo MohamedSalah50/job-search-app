@@ -3,12 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { TokenRepository, UserDocument, UserRepository } from 'src/db';
+import { CompanyRepository, TokenRepository, UserDocument, UserRepository } from 'src/db';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CloudinaryService, IAuthRequest, RoleEnum } from 'src/common';
 import { compareHash, generateEncryption, generateHash } from 'src/utils';
 import { isValidObjectId, Types } from 'mongoose';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
+import { ActionResponseType } from '../admin/dto';
 
 @Injectable()
 export class UserService {
@@ -213,4 +214,166 @@ export class UserService {
 
     return { message: 'Profile picture deleted successfully' };
   }
+
+
+
+
+
+  //=========================admin section will be go later to AdminService.ts
+
+
+  //get all users and companies dashboard
+  // async GetDashBoardData() {
+  //   console.log('Inside GetDashBoardData');
+  //   console.log('userRepository:', this.userRepository);
+  //   console.log('companyRepository:', this.companyRepository);
+  //   const users = await this.userRepository.find({
+  //     filter: {},
+  //     // options: {
+  //     //   projection: { password: 0, otp: 0 },
+  //     // },
+  //     select: { password: 0, otp: 0 },
+  //   });
+
+  //   console.log({ users });
+
+  //   const companies = await this.companyRepository.find({ filter: {} });
+  //   console.log({ companies });
+
+  //   return {
+  //     users,
+  //     companies,
+  //     totalUsers: users.length,
+  //     totalCompanies: companies.length,
+  //   };
+
+  //   // return "done admin";
+  // }
+
+  // //ban specificUser
+  // async BanUser(UserId: string): Promise<ActionResponseType> {
+  //   if (!isValidObjectId(UserId)) {
+  //     throw new BadRequestException('invalid user id');
+  //   }
+
+  //   const user = await this.userRepository.findOne({
+  //     filter: { _id: new Types.ObjectId(UserId), bannedAt: { $exists: false } },
+  //     select: { password: 0, otp: 0 },
+  //   });
+
+  //   if (!user) {
+  //     throw new NotFoundException('user not found or user is already banned');
+  //   }
+
+  //   await this.userRepository.updateOne({
+  //     filter: { _id: UserId },
+  //     update: { bannedAt: new Date() },
+  //   });
+
+  //   return { success: true, message: 'user banned successfully' };
+  // }
+
+  // //unban specificUser
+  // async UnbanUser(UserId: string): Promise<ActionResponseType> {
+  //   if (!isValidObjectId(UserId)) {
+  //     throw new BadRequestException('invalid user id');
+  //   }
+
+  //   const user = await this.userRepository.findOne({
+  //     filter: { _id: new Types.ObjectId(UserId), bannedAt: { $exists: true } },
+  //   });
+
+  //   if (!user) {
+  //     throw new NotFoundException('user not found or user is not banned');
+  //   }
+
+  //   await this.userRepository.updateOne({
+  //     filter: { _id: UserId },
+  //     update: { bannedAt: null },
+  //   });
+
+  //   return { success: true, message: 'user unbanned successfully' };
+  // }
+
+  // // Ban company
+  // async banCompany(companyId: string): Promise<ActionResponseType> {
+  //   const company = await this.companyRepository.findOne({
+  //     filter: {
+  //       _id: new Types.ObjectId(companyId),
+  //       bannedAt: { $exists: false },
+  //     },
+  //   });
+
+  //   if (!company) {
+  //     throw new NotFoundException(
+  //       'Company not found or company is already banned',
+  //     );
+  //   }
+
+  //   await this.companyRepository.updateOne({
+  //     filter: { _id: new Types.ObjectId(companyId) },
+  //     update: { bannedAt: new Date() },
+  //   });
+
+  //   return {
+  //     success: true,
+  //     message: 'Company banned successfully',
+  //   };
+  // }
+
+  // // Unban company
+  // async unbanCompany(companyId: string): Promise<ActionResponseType> {
+  //   const company = await this.companyRepository.findOne({
+  //     filter: {
+  //       _id: new Types.ObjectId(companyId),
+  //       bannedAt: { $exists: true },
+  //     },
+  //   });
+
+  //   if (!company) {
+  //     throw new NotFoundException('Company not found or company is not banned');
+  //   }
+
+  //   await this.companyRepository.updateOne({
+  //     filter: { _id: new Types.ObjectId(companyId) },
+  //     update: { bannedAt: null },
+  //   });
+
+  //   return {
+  //     success: true,
+  //     message: 'Company unbanned successfully',
+  //   };
+  // }
+
+  // //approve company
+
+  // async ApproveCompany(companyId: string): Promise<ActionResponseType> {
+  //   const company = await this.companyRepository.findOne({
+  //     filter: {
+  //       _id: new Types.ObjectId(companyId),
+  //       bannedAt: { $exists: true },
+  //       deletedAt: { $exists: false },
+  //     },
+  //   });
+
+  //   if (!company) {
+  //     throw new NotFoundException(
+  //       'Company not found or company is not banned or deleted',
+  //     );
+  //   }
+
+  //   if (company.approvedByAdmin) {
+  //     throw new BadRequestException('company is already approved');
+  //   }
+
+  //   await this.companyRepository.updateOne({
+  //     filter: { _id: new Types.ObjectId(companyId) },
+  //     update: { approvedByAdmin: true },
+  //   });
+
+  //   return {
+  //     success: true,
+  //     message: 'Company approved successfully',
+  //   };
+  // }
 }

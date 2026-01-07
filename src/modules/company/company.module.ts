@@ -7,5 +7,6 @@ import { CompanyModel, CompanyRepository } from 'src/db';
   imports: [CompanyModel],
   controllers: [CompanyController],
   providers: [CompanyService, CompanyRepository],
+  exports: [CompanyRepository],
 })
 export class CompanyModule {}
