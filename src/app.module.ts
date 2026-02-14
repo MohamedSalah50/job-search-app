@@ -20,7 +20,7 @@ import { AdminModule } from './modules/admin/admin.module';
       envFilePath: resolve('./config/.env.dev'),
       isGlobal: true,
     }),
- 
+
     MongooseModule.forRoot(process.env.MONGO_URI as string, {
       connectionFactory: (connection) => {
         console.log('✅ Connected to MongoDB :', connection.name);

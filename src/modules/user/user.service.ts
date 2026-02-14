@@ -3,19 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CompanyRepository, TokenRepository, UserDocument, UserRepository } from 'src/db';
+import { UserDocument, UserRepository } from 'src/db';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CloudinaryService, IAuthRequest, RoleEnum } from 'src/common';
 import { compareHash, generateEncryption, generateHash } from 'src/utils';
 import { isValidObjectId, Types } from 'mongoose';
 import { UpdatePasswordDto } from './dto/updatePassword.dto';
-import { ActionResponseType } from '../admin/dto';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly tokenRepository: TokenRepository,
+    // private readonly tokenRepository: TokenRepository,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -51,11 +50,15 @@ export class UserService {
 
   async getLoginUserAccountData(req: IAuthRequest) {
     const user = (await this.userRepository.findOne({
-      filter: { _id: req.user._id, freezedAt: { $exists: false } },
+      filter: {
+        _id: req.user._id,
+        freezedAt: { $exists: false },
+        bannedAt: { $exists: false },
+      },
     })) as UserDocument;
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found,banned or freezed');
     }
 
     return {
@@ -77,11 +80,15 @@ export class UserService {
       throw new NotFoundException('invalid user id');
 
     const user = (await this.userRepository.findOne({
-      filter: { _id: userId, freezedAt: { $exists: false } },
+      filter: {
+        _id: userId,
+        freezedAt: { $exists: false },
+        bannedAt: { $exists: false },
+      },
     })) as UserDocument;
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found,banned or freezed');
     }
 
     if (user._id.toString() === req.user._id.toString()) {
@@ -215,12 +222,7 @@ export class UserService {
     return { message: 'Profile picture deleted successfully' };
   }
 
-
-
-
-
   //=========================admin section will be go later to AdminService.ts
-
 
   //get all users and companies dashboard
   // async GetDashBoardData() {
