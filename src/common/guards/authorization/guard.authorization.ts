@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { roleName } from 'src/common/decorators/role.decorator';
 import { RoleEnum } from 'src/common/enums';
 
@@ -16,7 +17,7 @@ export class AuthorizationGuard implements CanActivate {
     // console.log({ context, tokenType });
 
     let role: RoleEnum = RoleEnum.user;
-    switch (context.getType()) {
+    switch (context.getType<string>()) {
       case 'http':
         role = context.switchToHttp().getRequest().credentials.user.role;
         break;
@@ -26,6 +27,11 @@ export class AuthorizationGuard implements CanActivate {
       //   case 'ws':
       //     const wsCtx = context.switchToWs();
       //     break;
+      case 'graphql':
+        role =
+          GqlExecutionContext.create(context).getContext().req.credentials.user
+            .role;
+        break;
       default:
         break;
     }

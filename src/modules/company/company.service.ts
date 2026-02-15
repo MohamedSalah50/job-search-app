@@ -6,14 +6,11 @@ import {
 } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import {
-  type CompanyDocument,
-  CompanyRepository,
-  UserRepository,
-} from 'src/db';
+import { CompanyRepository, UserRepository } from 'src/db';
 import { IAuthRequest, RoleEnum } from 'src/common';
 import { isValidObjectId, Types } from 'mongoose';
 import { ActionResponseType } from '../admin/dto';
+import { PaginationDto, SortOrder } from '../job/dto/pagination-job.dto';
 
 @Injectable()
 export class CompanyService {
@@ -260,31 +257,48 @@ export class CompanyService {
   }
 
   //====================================admin section & will be removed later to the AdminService.ts file
-  async GetDashBoardData() {
-    console.log('Inside GetDashBoardData');
-    console.log('userRepository:', this.userRepository);
-    console.log('companyRepository:', this.companyRepository);
-    const users = await this.userRepository.find({
-      filter: {},
-      // options: {
-      //   projection: { password: 0, otp: 0 },
-      // },
-      select: { password: 0, otp: 0 },
-    });
+  async GetDashBoardData(dto?: PaginationDto) {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      sortOrder = SortOrder.DESC,
+    } = dto || {};
+
+    const sortObj: any = {};
+    sortObj[sort] = sortOrder === SortOrder.ASC ? 1 : -1;
+
+    const { result: users, doc_count: totalUsers } =
+      await this.userRepository.paginate({
+        filter: {},
+        select: { password: 0, otp: 0 },
+        page,
+        size: limit,
+        options: {
+          sort: sortObj,
+        },
+      });
 
     console.log({ users });
 
-    const companies = await this.companyRepository.find({ filter: {} });
+    const { result: companies, doc_count: totalCompanies } =
+      await this.companyRepository.paginate({
+        filter: {},
+        page,
+        size: limit,
+        options: {
+          sort: sortObj,
+        },
+      });
+
     console.log({ companies });
 
     return {
       users,
       companies,
-      totalUsers: users.length,
-      totalCompanies: companies.length,
+      totalUsers,
+      totalCompanies,
     };
-
-    // return "done admin";
   }
 
   //ban specificUser
@@ -308,5 +322,109 @@ export class CompanyService {
     });
 
     return { success: true, message: 'user banned successfully' };
+  }
+
+  // //unban specificUser
+  async UnbanUser(UserId: string): Promise<ActionResponseType> {
+    if (!isValidObjectId(UserId)) {
+      throw new BadRequestException('invalid user id');
+    }
+
+    const user = await this.userRepository.findOne({
+      filter: { _id: new Types.ObjectId(UserId), bannedAt: { $exists: true } },
+    });
+
+    if (!user) {
+      throw new NotFoundException('user not found or user is not banned');
+    }
+
+    await this.userRepository.updateOne({
+      filter: { _id: UserId },
+      update: { $unset: { bannedAt: '' } },
+    });
+
+    return { success: true, message: 'user unbanned successfully' };
+  }
+
+  // Ban company
+  async banCompany(companyId: string): Promise<ActionResponseType> {
+    const company = await this.companyRepository.findOne({
+      filter: {
+        _id: new Types.ObjectId(companyId),
+        bannedAt: { $exists: false },
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException(
+        'Company not found or company is already banned',
+      );
+    }
+
+    await this.companyRepository.updateOne({
+      filter: { _id: new Types.ObjectId(companyId) },
+      update: { bannedAt: new Date() },
+    });
+
+    return {
+      success: true,
+      message: 'Company banned successfully',
+    };
+  }
+
+  // Unban company
+  async unbanCompany(companyId: string): Promise<ActionResponseType> {
+    const company = await this.companyRepository.findOne({
+      filter: {
+        _id: new Types.ObjectId(companyId),
+        bannedAt: { $exists: true },
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Company not found or company is not banned');
+    }
+
+    await this.companyRepository.updateOne({
+      filter: { _id: new Types.ObjectId(companyId) },
+      update: { $unset: { bannedAt: '' } },
+    });
+
+    return {
+      success: true,
+      message: 'Company unbanned successfully',
+    };
+  }
+
+  // //approve company
+
+  async ApproveCompany(companyId: string): Promise<ActionResponseType> {
+    const company = await this.companyRepository.findOne({
+      filter: {
+        _id: new Types.ObjectId(companyId),
+        bannedAt: { $exists: false },
+        deletedAt: { $exists: false },
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException(
+        'Company not found or company is not banned or deleted',
+      );
+    }
+
+    if (company.approvedByAdmin) {
+      throw new BadRequestException('company is already approved');
+    }
+
+    await this.companyRepository.updateOne({
+      filter: { _id: new Types.ObjectId(companyId) },
+      update: { approvedByAdmin: true },
+    });
+
+    return {
+      success: true,
+      message: 'Company approved successfully',
+    };
   }
 }

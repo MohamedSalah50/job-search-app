@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { tokenName } from 'src/common/decorators/tokenType.decorator';
 import { tokenEnum } from 'src/common/enums';
 import { TokenService } from 'src/utils/security/token.security';
@@ -9,7 +10,7 @@ export class AuthenticationGuard implements CanActivate {
   constructor(
     private readonly tokensService: TokenService,
     private readonly reflector: Reflector,
-  ) { }
+  ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const tokenType: tokenEnum =
       this.reflector.getAllAndOverride<tokenEnum>(tokenName, [
@@ -21,7 +22,7 @@ export class AuthenticationGuard implements CanActivate {
 
     let req: any;
     let authorization: string = '';
-    switch (context.getType()) {
+    switch (context.getType<string>()) {
       case 'http':
         const httpCtx = context.switchToHttp();
         req = httpCtx.getRequest();
@@ -30,9 +31,14 @@ export class AuthenticationGuard implements CanActivate {
       //   case 'rpc':
       //     const rpcCtx = context.switchToRpc();
       //     break;
-      //   case 'ws': 
+      //   case 'ws':
       //     const wsCtx = context.switchToWs();
       //     break;
+
+      case 'graphql':
+         req = GqlExecutionContext.create(context).getContext().req;
+        authorization = req.headers.authorization;
+        break;
       default:
         break;
     }
@@ -42,8 +48,8 @@ export class AuthenticationGuard implements CanActivate {
     });
 
     req.credentials = { user, decoded };
-    req.user = user
-    req.decoded = decoded
+    req.user = user;
+    req.decoded = decoded;
     return true;
   }
 }

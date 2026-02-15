@@ -91,6 +91,48 @@ export abstract class DatabaseRepository<
     return await docs.exec();
   }
 
+  // async paginate({
+  //   filter,
+  //   options = {},
+  //   select,
+  //   page = 'all',
+  //   size,
+  // }: {
+  //   filter?: RootFilterQuery<TDocument>;
+  //   select?: ProjectionType<TDocument> | undefined;
+  //   options?: QueryOptions<TDocument> | undefined;
+  //   page?: number | 'all';
+  //   size?: number;
+  // }): Promise<{
+  //   doc_count?: number;
+  //   pages?: number;
+  //   current_page?: number | undefined;
+  //   limit?: number;
+  //   result: TDocument[] | Lean<TDocument>[];
+  // }> {
+  //   let doc_count: number | undefined = undefined;
+  //   let pages: number = 1;
+
+  //   if (page != 'all') {
+  //     page = Math.floor(page < 1 ? 1 : page);
+  //     options.limit = Math.floor(size || Number(process.env.PAGE_SIZE) || 2);
+  //     options.skip = (page - 1) * options.limit;
+  //     doc_count = await this.model.countDocuments(filter);
+  //     pages = Math.ceil(doc_count / options.limit);
+  //   }
+
+  //   const result = await this.find({ filter: filter || {}, select, options });
+
+  //   return {
+  //     doc_count,
+  //     pages: page == 'all' ? undefined : pages,
+  //     current_page: page == 'all' ? undefined : page,
+  //     limit: options.limit,
+  //     result,
+  //   };
+  // }
+
+
   async paginate({
     filter,
     options = {},
@@ -105,29 +147,38 @@ export abstract class DatabaseRepository<
     size?: number;
   }): Promise<{
     doc_count?: number;
-    pages?: number;
-    current_page?: number | undefined;
+    total_pages?: number;
+    current_page?: number;
     limit?: number;
+    has_next_page?: boolean;
+    has_prev_page?: boolean;
     result: TDocument[] | Lean<TDocument>[];
   }> {
     let doc_count: number | undefined = undefined;
-    let pages: number = 1;
+    let total_pages: number | undefined = undefined;
+    let has_next_page: boolean | undefined = undefined;
+    let has_prev_page: boolean | undefined = undefined;
 
-    if (page != 'all') {
+    if (page !== 'all') {
       page = Math.floor(page < 1 ? 1 : page);
-      options.limit = Math.floor(size || Number(process.env.PAGE_SIZE) || 2);
+      options.limit = Math.floor(size || Number(process.env.PAGE_SIZE) || 10);
       options.skip = (page - 1) * options.limit;
+      
       doc_count = await this.model.countDocuments(filter);
-      pages = Math.ceil(doc_count / options.limit);
+      total_pages = Math.ceil(doc_count / options.limit);
+      has_next_page = page < total_pages;
+      has_prev_page = page > 1;
     }
 
     const result = await this.find({ filter: filter || {}, select, options });
 
     return {
       doc_count,
-      pages: page == 'all' ? undefined : pages,
-      current_page: page == 'all' ? undefined : page,
+      total_pages,
+      current_page: page === 'all' ? undefined : page,
       limit: options.limit,
+      has_next_page,
+      has_prev_page,
       result,
     };
   }

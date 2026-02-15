@@ -9,7 +9,6 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import {
   ApplicationRepository,
-  type CompanyDocument,
   CompanyRepository,
   type JobDocument,
   JobRepository,
@@ -21,7 +20,6 @@ import { GetCompanyJobsDto } from './dto/get-jobs.dto';
 import { PaginationDto, SortOrder } from './dto/pagination-job.dto';
 import { JobApplicatonDto } from './dto/JobApplicaton.dto';
 import { HandleApplicationStatusDto } from './dto/handleApplicationStatusDto';
-import path from 'path';
 
 @Injectable()
 export class JobService {
@@ -239,15 +237,21 @@ export class JobService {
       throw new NotFoundException('Company not found');
     }
 
-    const skip = (page - 1) * limit;
     const sortObj: any = {};
     sortObj[sort] = sortOrder === SortOrder.ASC ? 1 : -1;
 
-    const jobs = await this.jobRepository.find({
+    const {
+      result,
+      doc_count,
+      total_pages,
+      current_page,
+      has_next_page,
+      has_prev_page,
+    } = await this.jobRepository.paginate({
       filter: { companyId: new Types.ObjectId(companyId), closed: false },
+      page,
+      size: limit,
       options: {
-        skip,
-        limit,
         sort: sortObj,
         populate: [
           {
@@ -259,19 +263,15 @@ export class JobService {
       },
     });
 
-    // Total count
-    // const totalCount = await this.jobRepository.countDocuments({ filter });
-    // const totalPages = Math.ceil(totalCount / limit);
-
     return {
-      jobs,
+      jobs: result,
       pagination: {
-        currentPage: page,
-        // totalPages,
-        // totalCount,
+        currentPage: current_page,
+        totalPages: total_pages,
+        totalCount: doc_count,
         limit,
-        // hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
+        hasNextPage: has_next_page,
+        hasPrevPage: has_prev_page,
       },
     };
   }
@@ -289,7 +289,6 @@ export class JobService {
       technicalSkills,
     } = dto;
 
-    const skip = (page - 1) * limit;
     const sortObj: any = {};
     sortObj[sort] = sortOrder === SortOrder.DESC ? 1 : -1;
 
@@ -307,11 +306,18 @@ export class JobService {
       filter.technicalSkills = { $in: technicalSkills };
     }
 
-    const jobs = await this.jobRepository.find({
+    const {
+      result,
+      doc_count,
+      total_pages,
+      current_page,
+      has_next_page,
+      has_prev_page,
+    } = await this.jobRepository.paginate({
       filter,
+      page,
+      size: limit,
       options: {
-        skip,
-        limit,
         sort: sortObj,
         populate: [
           {
@@ -324,14 +330,14 @@ export class JobService {
     });
 
     return {
-      jobs,
+      jobs: result,
       pagination: {
-        currentPage: page,
-        // totalPages,
-        // totalCount,
+        currentPage: current_page,
+        totalPages: total_pages,
+        totalCount: doc_count,
         limit,
-        // hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
+        hasNextPage: has_next_page,
+        hasPrevPage: has_prev_page,
       },
     };
   }
@@ -377,20 +383,29 @@ export class JobService {
       throw new ForbiddenException('You are not authorized to view this job');
     }
 
-    // Pagination
-    // const {
-    //   page = 1,
-    //   limit = 10,
-    //   sort = 'createdAt',
-    //   sortOrder = 'desc',
-    // } = dto;
-    // const skip = (page - 1) * limit;
-    // const sortObj: any = {};
-    // sortObj[sort] = sortOrder === 'asc' ? 1 : -1;
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      sortOrder = SortOrder.DESC,
+    } = dto;
 
-    const applications = await this.applicationRepository.find({
+    const sortObj: any = {};
+    sortObj[sort] = sortOrder === SortOrder.ASC ? 1 : -1;
+
+    const {
+      result,
+      doc_count,
+      total_pages,
+      current_page,
+      has_next_page,
+      has_prev_page,
+    } = await this.applicationRepository.paginate({
       filter: { jobId },
+      page,
+      size: limit,
       options: {
+        sort: sortObj,
         populate: [
           {
             path: 'userId',
@@ -400,7 +415,18 @@ export class JobService {
       },
     });
 
-    return { job, applications };
+    return {
+      job,
+      applications: result,
+      pagination: {
+        currentPage: current_page,
+        totalPages: total_pages,
+        totalCount: doc_count,
+        limit,
+        hasNextPage: has_next_page,
+        hasPrevPage: has_prev_page,
+      },
+    };
   }
 
   async applyJobApplication(
