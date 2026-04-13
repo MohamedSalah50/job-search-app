@@ -13,6 +13,7 @@ import { SharedAutnenticationModule } from './common/modules/autnentication.modu
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AdminModule } from './modules/admin/admin.module';
+import { RealTimeModule } from './modules/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AdminModule } from './modules/admin/admin.module';
     JobModule,
     CommonModule,
     AdminModule,
+    RealTimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

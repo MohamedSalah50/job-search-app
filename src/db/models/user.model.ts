@@ -122,3 +122,5 @@ export const UserModel = MongooseModule.forFeature([
     schema: UserSchema,
   },
 ]);
+
+export const ConnectedSockets = new Map<string,string[]>();
