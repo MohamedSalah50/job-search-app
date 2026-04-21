@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { tokenName } from 'src/common/decorators/tokenType.decorator';
 import { tokenEnum } from 'src/common/enums';
+import { getSocketAuth } from 'src/utils/security/socket';
 import { TokenService } from 'src/utils/security/token.security';
 
 @Injectable()
@@ -28,20 +29,26 @@ export class AuthenticationGuard implements CanActivate {
         req = httpCtx.getRequest();
         authorization = req.headers.authorization;
         break;
-      //   case 'rpc':
-      //     const rpcCtx = context.switchToRpc();
-      //     break;
-      //   case 'ws':
-      //     const wsCtx = context.switchToWs();
-      //     break;
+
+      case 'ws':
+        const ws_Ctx = context.switchToWs();
+        req = ws_Ctx.getClient();
+        authorization = getSocketAuth(req);
+        console.log(req);
+        break;
 
       case 'graphql':
-         req = GqlExecutionContext.create(context).getContext().req;
+        req = GqlExecutionContext.create(context).getContext().req;
         authorization = req.headers.authorization;
         break;
       default:
         break;
     }
+
+    if (!authorization) {
+      return false;
+    }
+
     const { user, decoded } = await this.tokensService.decodeToken({
       authorization,
       tokenType,

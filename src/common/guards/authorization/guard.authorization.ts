@@ -21,6 +21,10 @@ export class AuthorizationGuard implements CanActivate {
       case 'http':
         role = context.switchToHttp().getRequest().credentials.user.role;
         break;
+
+        case 'ws':
+        role = context.switchToWs().getClient().credentials.user.role;
+        break;
       //   case 'rpc':
       //     const rpcCtx = context.switchToRpc();
       //     break;

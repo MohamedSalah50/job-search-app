@@ -9,8 +9,9 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { ISocketAuth, tokenEnum } from 'src/common';
-import { ConnectedSockets } from 'src/db';
+import { ISocketAuth, RoleEnum, tokenEnum, User } from 'src/common';
+import { auth } from 'src/common/decorators/auth.decorator';
+import { ConnectedSockets, type UserDocument } from 'src/db';
 import { getSocketAuth } from 'src/utils/security/socket';
 import { TokenService } from 'src/utils/security/token.security';
 
@@ -51,9 +52,11 @@ export class RealTimeGateway
     console.log('logout :', client.id);
   }
 
+  @auth([RoleEnum.admin,RoleEnum.user])
   @SubscribeMessage('sayHi')
-  sayHi(@MessageBody() data: any, @ConnectedSocket() client: Socket): string {
+  sayHi(@MessageBody() data: any, @ConnectedSocket() client: Socket , @User() user:UserDocument): string {
     console.log(data);
+    console.log({user});
     this.server.emit('sayHi', 'nest to fe');
     return 'data recieved';
   }
