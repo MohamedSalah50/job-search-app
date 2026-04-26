@@ -3,7 +3,9 @@
 export enum RoleEnum {
     superAdmin = "super-Admin",
     admin = "admin",
-    user = "user"
+    user = "user",
+    hr = "hr",
+    companyOwner = "companyOwner"
 }
 
 export enum genderEnum {

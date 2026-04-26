@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MessagesService } from './chat.service';
+import { ChatService } from './chat.service';
 import { MessagesController } from './chat.controller';
+import { MessageModel, UserModel, UserRepository } from 'src/db';
+import { MessageRepository } from 'src/db/repositories/message.repository';
 
 @Module({
+  imports: [MessageModel, UserModel],
   controllers: [MessagesController],
-  providers: [MessagesService],
+  providers: [ChatService, MessageRepository, UserRepository],
+  exports: [ChatService],
 })
-export class MessagesModule {}
+export class ChatModule {}
