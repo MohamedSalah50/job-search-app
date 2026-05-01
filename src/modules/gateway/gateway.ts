@@ -10,12 +10,14 @@ import {
 } from '@nestjs/websockets';
 import { Types } from 'mongoose';
 import { Socket, Server } from 'socket.io';
-import { ISocketAuth, RoleEnum, tokenEnum, User } from 'src/common';
+import { ISocketAuth, RoleEnum, tokenEnum } from 'src/common';
 import { auth } from 'src/common/decorators/auth.decorator';
-import { ConnectedSockets, type UserDocument } from 'src/db';
+import { ConnectedSockets, UserRepository, type UserDocument } from 'src/db';
 import { getSocketAuth } from 'src/utils/security/socket';
 import { TokenService } from 'src/utils/security/token.security';
 import { ChatService } from '../chat/chat.service';
+import { User } from 'src/common/decorators/user.decorator';
+import { MessageRepository } from 'src/db/repositories/message.repository';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class RealTimeGateway
@@ -26,6 +28,8 @@ export class RealTimeGateway
   constructor(
     private readonly tokenService: TokenService,
     private readonly chatService: ChatService,
+    private readonly userRepository: UserRepository,
+    private readonly messageRepository: MessageRepository,
   ) {}
 
   afterInit(server: Server) {
@@ -110,7 +114,7 @@ export class RealTimeGateway
   ) {
     try {
       const { senderId } = data;
-
+      console.log('markAsSeen gateway hit', { data, viewerId: viewer._id });
       await this.chatService.markAsSeen({
         viewerId: viewer._id,
         senderId,

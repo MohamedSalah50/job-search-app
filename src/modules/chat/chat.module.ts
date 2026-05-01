@@ -8,6 +8,6 @@ import { MessageRepository } from 'src/db/repositories/message.repository';
   imports: [MessageModel, UserModel],
   controllers: [MessagesController],
   providers: [ChatService, MessageRepository, UserRepository],
-  exports: [ChatService],
+  exports: [ChatService, MessageRepository, UserRepository],
 })
 export class ChatModule {}
