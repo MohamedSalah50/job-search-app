@@ -141,8 +141,6 @@ export class ChatService {
     viewerId: Types.ObjectId;
     senderId: string;
   }) {
-
-    console.log('markAsSeen service hit', { viewerId, senderId });
     await this.messagesRepository.updateOne({
       filter: {
         senderId: new Types.ObjectId(senderId),

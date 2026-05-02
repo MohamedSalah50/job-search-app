@@ -5,7 +5,7 @@ import {
   SchemaFactory,
   Virtual,
 } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { genderEnum, IUser, ProviderEnum, RoleEnum } from 'src/common';
 import { decryptEncryption, generateEncryption, generateHash } from 'src/utils';
 import { OtpDocument } from './otp.model';
@@ -116,6 +116,20 @@ UserSchema.virtual('otp', {
   ref: 'Otp',
 });
 
+// When a User is deleted → delete their applications + messages
+UserSchema.post('findOneAndDelete', async function (doc) {
+  if (!doc) return;
+  const userId = doc._id;
+
+  const Application = mongoose.model('Application');
+  await Application.deleteMany({ userId });
+
+  const Message = mongoose.model('Message');
+  await Message.deleteMany({
+    $or: [{ senderId: userId }, { receiverId: userId }],
+  });
+});
+
 export const UserModel = MongooseModule.forFeature([
   {
     name: User.name,
@@ -123,4 +137,4 @@ export const UserModel = MongooseModule.forFeature([
   },
 ]);
 
-export const ConnectedSockets = new Map<string,string[]>();
+export const ConnectedSockets = new Map<string, string[]>();

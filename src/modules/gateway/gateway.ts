@@ -38,7 +38,6 @@ export class RealTimeGateway
 
   async handleConnection(client: ISocketAuth) {
     try {
-      // console.log(client.handshake);
 
       const authorization = getSocketAuth(client);
 
@@ -90,7 +89,7 @@ export class RealTimeGateway
       const saved = await this.chatService.sendMessages({
         server: this.server,
         sender,
-        recieverId,
+        recieverId : new Types.ObjectId(recieverId),
         message,
       });
 
@@ -114,7 +113,6 @@ export class RealTimeGateway
   ) {
     try {
       const { senderId } = data;
-      console.log('markAsSeen gateway hit', { data, viewerId: viewer._id });
       await this.chatService.markAsSeen({
         viewerId: viewer._id,
         senderId,

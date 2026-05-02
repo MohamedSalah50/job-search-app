@@ -1,5 +1,5 @@
 import { MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import {
   IJob,
   IUser,
@@ -47,6 +47,13 @@ JobSchema.virtual('applications', {
   ref: 'Application',
   localField: '_id',
   foreignField: 'jobId',
+});
+
+// When a Job is deleted → delete all its applications
+JobSchema.post('findOneAndDelete', async function (doc) {
+  if (!doc) return;
+  const Application = mongoose.model('Application');
+  await Application.deleteMany({ jobId: doc._id });
 });
 
 export const JobModel = MongooseModule.forFeature([
