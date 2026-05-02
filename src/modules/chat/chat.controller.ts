@@ -13,9 +13,9 @@ export class MessagesController {
   @auth([RoleEnum.user, RoleEnum.companyOwner, RoleEnum.hr])
   @Get(':userId')
   async getChatHistory(
-    @Param('userId') targetUserId: Types.ObjectId,
+    @Param('userId') targetUserId: string,
     @Query('page') page: number = 1,
-    @Query('page') limit: number = 20,
+    @Query('limit') limit: number = 20,
     @User() user: UserDocument,
   ) {
     const data = await this.chatService.getChatHistory({

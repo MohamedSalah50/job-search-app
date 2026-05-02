@@ -23,7 +23,7 @@ export class ChatService {
     limit = 20,
   }: {
     requesterId: Types.ObjectId;
-    targetUserId: Types.ObjectId;
+    targetUserId: string;
     page?: number;
     limit?: number;
   }) {
@@ -35,13 +35,15 @@ export class ChatService {
       throw new NotFoundException('target user not found');
     }
 
+    const targetId = new Types.ObjectId(targetUserId);
+
     const { result, doc_count, total_pages, has_next_page, has_prev_page } =
       await this.messagesRepository.paginate({
         filter: {
           deletedAt: null,
           $or: [
-            { senderId: requesterId, receiverId: targetUserId },
-            { senderId: targetUserId, receiverId: requesterId },
+            { senderId: requesterId, receiverId: targetId },
+            { senderId: targetId, receiverId: requesterId },
           ],
         },
         select: 'senderId receiverId message seenAt createdAt',
@@ -57,6 +59,8 @@ export class ChatService {
           ],
         },
       });
+
+    console.log('paginate result', { result, doc_count });
 
     return {
       messages: (result as any[]).reverse(), // oldest first
