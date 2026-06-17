@@ -18,6 +18,14 @@ A full-featured **Job Search Platform** REST API built with **NestJS**, **MongoD
 | OAuth | Google OAuth2 |
 | Encryption | bcrypt + AES |
 
+
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white)
+![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=flat&logo=graphql&logoColor=white)
+![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=flat&logo=socketdotio&logoColor=white)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white)
+
 ---
 
 ## 📁 Project Structure
@@ -202,6 +210,10 @@ WEB_CLIENT_IDS=
 ## 🏃 Running the App
 
 ```bash
+# Clone the repository
+git clone https://github.com/MohamedSalah50/job-search-app.git
+cd job-search-app
+
 # Install dependencies
 npm install
 
@@ -212,6 +224,12 @@ npm run start:dev
 npm run build
 npm run start:prod
 ```
+
+## 📬 Postman Collection
+
+> Test all endpoints with the published collection:
+
+[![Postman](https://img.shields.io/badge/Postman-Collection-FF6C37?style=flat&logo=postman&logoColor=white)](https://documenter.getpostman.com/view/42944447/2sBXqRiGfQ)
 
 ---
 
