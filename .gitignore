@@ -3,6 +3,7 @@
 /node_modules
 /config
 /build
+mongo_data
 
 # Logs
 logs

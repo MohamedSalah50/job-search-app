@@ -1,0 +1,32 @@
+
+services:
+  job-search-app:
+    container_name: job-app-dev
+    image: job-image-dev
+    build: 
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "4000:3000"
+    env_file:
+      - config/.env.dev
+    depends_on:
+      - mongodb
+    develop:
+      watch:
+       - action: sync
+         path: .
+         target: /app
+         ignore:
+          - node_modules
+
+  mongodb:
+    container_name: dev-mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo_data:/data/db
+
+# volumes:
+  # mongo_data:
