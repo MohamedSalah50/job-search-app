@@ -17,6 +17,7 @@ A full-featured **Job Search Platform** REST API built with **NestJS**, **MongoD
 | Email | Nodemailer + Event Emitter |
 | OAuth | Google OAuth2 |
 | Encryption | bcrypt + AES |
+| Containerization | Docker + Docker Compose |
 
 
 ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)
@@ -25,6 +26,7 @@ A full-featured **Job Search Platform** REST API built with **NestJS**, **MongoD
 ![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=flat&logo=graphql&logoColor=white)
 ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=flat&logo=socketdotio&logoColor=white)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 
 ---
 
@@ -192,9 +194,20 @@ User deleted     →  Applications deleted
 
 ## ⚙️ Environment Variables
 
+The app reads its environment file from `config/.env.dev` (see [Project Structure](#-project-structure)).
+
 ```env
 PORT=3000
-MONGO_URI=mongodb://...
+APP_NAME="job search app"
+
+# Use ONE of the following, depending on where MongoDB is running:
+
+# Option A — MongoDB Atlas (cloud)
+# MONGO_URI=mongodb+srv://<user>:<password>@cluster0.yffv1sx.mongodb.net/job-SerchApp
+
+# Option B — Local MongoDB container (via docker-compose)
+MONGO_URI=mongodb://mongodb:27017/job-SerchApp
+
 ACCESS_SECRET=
 REFRESH_SECRET=
 CLOUDINARY_CLOUD_NAME=
@@ -205,9 +218,13 @@ EMAIL_PASS=
 WEB_CLIENT_IDS=
 ```
 
+> ⚠️ **Note on `MONGO_URI` hostnames:**
+> - When connecting to **Atlas**, the URI works the same whether you run the app locally or inside Docker (it just needs internet access).
+> - When connecting to the **local `mongodb` container**, the host must be `mongodb` (the service name in `docker-compose.yaml`) — **not** `localhost`. Containers reach each other by service name over the Docker network, not `localhost`.
+
 ---
 
-## 🏃 Running the App
+## 🏃 Running the App (without Docker)
 
 ```bash
 # Clone the repository
@@ -225,6 +242,76 @@ npm run build
 npm run start:prod
 ```
 
+---
+
+## 🐳 Running with Docker
+
+The app is fully dockerized for development, including a live-reload workflow via `docker compose watch`.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and **running**
+- A `config/.env.dev` file with the required environment variables (see [Environment Variables](#️-environment-variables))
+
+### Project Docker files
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Builds the NestJS app image (Node.js base, installs deps, runs `npm run start:dev`) |
+| `docker-compose.yaml` | Orchestrates the app container + local MongoDB container |
+| `.dockerignore` | Excludes `node_modules`, `dist`, and `config/.env.dev` from the build context |
+
+### 1. Build and start the containers
+
+```bash
+docker compose up --build
+```
+
+This will:
+- Build the app image from the `Dockerfile`
+- Start the `job-search-app` container, mapped to `http://localhost:4000`
+- Start a local `mongodb` container, exposed on port `27017`, with data persisted in the `mongo_data` volume
+
+> Make sure `MONGO_URI` in `config/.env.dev` points to `mongodb://mongodb:27017/job-SerchApp` (the local container) rather than the Atlas URI — otherwise the app will talk to Atlas instead of the container, and the `mongodb` service will just sit idle.
+
+### 2. Live reload while developing
+
+Instead of `up`, you can run:
+
+```bash
+docker compose watch
+```
+
+This syncs local file changes into the running container automatically (excluding `node_modules`), so you don't need to rebuild the image on every change.
+
+### 3. Stopping the containers
+
+```bash
+docker compose down
+```
+
+Add `-v` if you also want to remove the MongoDB volume (this **deletes all local Mongo data**):
+
+```bash
+docker compose down -v
+```
+
+### Ports
+
+| Service | Container Port | Host Port |
+|---|---|---|
+| `job-search-app` | 3000 | 4000 |
+| `mongodb` | 27017 | 27017 |
+
+So once running, the API is reachable at **`http://localhost:4000`**, not `3000` — the app listens on `3000` *inside* the container, but it's mapped to `4000` on your machine.
+
+### Switching between Atlas and local MongoDB
+
+You don't have to use the local `mongodb` container — it's provided for convenience. To use MongoDB Atlas instead:
+1. Comment out the local `MONGO_URI` line in `config/.env.dev` and uncomment/use the Atlas one.
+2. Optionally remove the `mongodb` service from `docker-compose.yaml` if you won't use it at all.
+
+---
+
 ## 📬 Postman Collection
 
 > Test all endpoints with the published collection:
@@ -239,3 +326,4 @@ npm run start:prod
 - Soft delete is used for companies (sets `deletedAt`) — hard delete triggers cascade hooks
 - Mobile numbers are AES-encrypted at rest and decrypted on read
 - JWT tokens are invalidated on password change via `changeCredentialTime`
+- When running via Docker, the API is available on `http://localhost:4000` (see [Running with Docker](#-running-with-docker))
